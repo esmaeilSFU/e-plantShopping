@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import "./ProductList.css";
 import CartItem from "./CartItem";
-import { useDispatch } from "react-redux";
-import { addItem } from "./CartSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { addItem, removeItem, updateQuantity } from "./CartSlice";
 function ProductList({ onHomeClick }) {
   const [showCart, setShowCart] = useState(false);
   const [showPlants, setShowPlants] = useState(false); // State to control the visibility of the About Us page
@@ -10,6 +10,15 @@ function ProductList({ onHomeClick }) {
   const dispatch = useDispatch();
   const handleAddToCart = (plant) => {
     dispatch(addItem(plant));
+  };
+
+  const cartItems = useSelector((state) => state.cart.items);
+  const calculateTotalQuantity = () => {
+    return cartItems
+      ? cartItems.reduce((total, item) => {
+          return total + item.quantity;
+        }, 0)
+      : 0;
   };
 
   const plantsArray = [
@@ -290,8 +299,8 @@ function ProductList({ onHomeClick }) {
     setShowCart(false); // Hide the cart when navigating to About Us
   };
 
-  const handleContinueShopping = (e) => {
-    e.preventDefault();
+  const handleContinueShopping = () => {
+    // e.preventDefault();
     setShowCart(false);
   };
   return (
@@ -319,7 +328,7 @@ function ProductList({ onHomeClick }) {
             </a>
           </div>
           <div>
-            {" "}
+            {""}
             <a href="#" onClick={(e) => handleCartClick(e)} style={styleA}>
               <h1 className="cart">
                 <svg
@@ -342,13 +351,48 @@ function ProductList({ onHomeClick }) {
                     id="mainIconPathAttribute"
                   ></path>
                 </svg>
+                <span className="cart_quantity_count">
+                  {calculateTotalQuantity()}
+                </span>
               </h1>
             </a>
           </div>
         </div>
       </div>
       {!showCart ? (
-        <div className="product-grid"></div>
+        <div className="product-grid">
+          {plantsArray.map((categoryObj) => (
+            <div key={categoryObj.category}>
+              <div className="plantname_heading">
+                <h2 className="plant_heading">{categoryObj.category}</h2>
+              </div>
+
+              <div className="product-list">
+                {categoryObj.plants.map((plant) => (
+                  <div
+                    className="product-card"
+                    key={`${categoryObj.category}-${plant.name}`}
+                  >
+                    <img
+                      src={plant.image}
+                      alt={plant.name}
+                      className="product-image"
+                    />
+                    <h3 className="product-title">{plant.name}</h3>
+                    <p>{plant.description}</p>
+                    <p className="product-price">{plant.cost}</p>
+                    <button
+                      className="product-button"
+                      onClick={() => handleAddToCart(plant)}
+                    >
+                      Add to Cart
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
       ) : (
         <CartItem onContinueShopping={handleContinueShopping} />
       )}
